@@ -19,7 +19,8 @@
         const trials = jsPsych.data.get().filterCustom(function(trial) {
           return trial.condition !== undefined;
         });
-        const csv_data = trials.csv();
+        const clean_data = trials.select(['condition', 'phase', 'label', 'rt', 'response', 'trial_index', 'time_elapsed']);
+        const csv_data = clean_data.csv();
         window.parent.postMessage({
           type: "EXPERIMENT_DATA",
           csv_data: csv_data
@@ -63,7 +64,7 @@
               [ ${label} ]
             </div>
             <p style="font-size:16px;">
-              Press <strong>F</strong> = Yield &nbsp;&nbsp;&nbsp;
+              Press <strong>F</strong> = Yield &nbsp; &nbsp; &nbsp;
               Press <strong>J</strong> = Proceed
             </p>
           </div>
