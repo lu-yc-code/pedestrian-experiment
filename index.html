@@ -19,8 +19,7 @@
         const trials = jsPsych.data.get().filterCustom(function(trial) {
           return trial.condition !== undefined;
         });
-        const clean_data = trials.select(['condition', 'phase', 'label', 'rt', 'response', 'trial_index', 'time_elapsed']);
-        const csv_data = clean_data.csv();
+        const csv_data = trials.csv();
         window.parent.postMessage({
           type: "EXPERIMENT_DATA",
           csv_data: csv_data
