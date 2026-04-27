@@ -16,11 +16,16 @@
 
     const jsPsych = initJsPsych({
       on_finish: function() {
-        const trials = jsPsych.data.get().filterCustom(function(trial) {
+        const all_data = jsPsych.data.get().filterCustom(function(trial) {
           return trial.condition !== undefined;
-        });
-        const clean_data = trials.select(['condition', 'phase', 'label', 'rt', 'response', 'trial_index', 'time_elapsed']);
-        const csv_data = clean_data.csv();
+        }).values();
+
+        const headers = ['condition', 'phase', 'label', 'rt', 'response', 'trial_index', 'time_elapsed'];
+        const rows = all_data.map(trial =>
+          headers.map(h => '"' + String(trial[h] || '').replace(/"/g, '""') + '"').join(',')
+        );
+        const csv_data = headers.map(h => '"' + h + '"').join(',') + '\n' + rows.join('\n');
+
         window.parent.postMessage({
           type: "EXPERIMENT_DATA",
           csv_data: csv_data
