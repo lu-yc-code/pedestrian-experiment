@@ -1,0 +1,26 @@
+{
+  "name": "pedestrian-experiment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lu-yc-code/pedestrian-experiment.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lu-yc-code/pedestrian-experiment/issues"
+  },
+  "homepage": "https://github.com/lu-yc-code/pedestrian-experiment#readme",
+  "dependencies": {
+    "@jspsych/plugin-html-keyboard-response": "^2.1.0",
+    "@jspsych/plugin-video-keyboard-response": "^2.1.1",
+    "jspsych": "^8.2.3"
+  }
+}

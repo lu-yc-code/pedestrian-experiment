@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pedestrian Experiment</title>
+    <script src="node_modules/jspsych/dist/index.browser.js"></script>
+    <script src="node_modules/@jspsych/plugin-html-keyboard-response/dist/index.browser.js"></script>
+    <script src="node_modules/@jspsych/plugin-video-keyboard-response/dist/index.browser.js"></script>
+    <link rel="stylesheet" href="node_modules/jspsych/css/jspsych.css">
+  </head>
+  <body></body>
+  <script>
+
+    const jsPsych = initJsPsych({
+      on_finish: function() {
+        const trials = jsPsych.data.get().filter({trial_type: 'html-keyboard-response'}).filterCustom(function(trial) {
+          return trial.condition !== undefined;
+        });
+        trials.localSave('csv', 'experiment_data.csv');
+      }
+    });
+
+    // ─── FIXATION ───────────────────────────────────────────────
+    const fixation = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '<p style="font-size:48px;">+</p>',
+      choices: "NO_KEYS",
+      trial_duration: 300
+    };
+
+    // ─── ITI ────────────────────────────────────────────────────
+    const iti = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: '',
+      choices: "NO_KEYS",
+      trial_duration: 500
+    };
+
+    // ─── HELPER: 產生一個 trial ──────────────────────────────────
+    function make_trial(condition, phase, label) {
+      return {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+          <div style="text-align:center;">
+            <div style="
+              width: 640px;
+              height: 360px;
+              background: #ccc;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 20px auto;
+              font-size: 18px;
+              color: #555;
+            ">
+              [ ${label} ]
+            </div>
+            <p style="font-size:16px;">
+              Press <strong>F</strong> = Yield &nbsp;&nbsp;&nbsp;
+              Press <strong>J</strong> = Proceed
+            </p>
+          </div>
+        `,
+        choices: ['f', 'j'],
+        data: {
+          condition: condition,
+          phase: phase,
+          label: label
+        }
+      };
+    }
+
+    // ─── PHASE 1 CONDITIONS ──────────────────────────────────────
+    const phase1_conditions = [
+      { condition: 'permissive_A',  label: 'Green Light + Crosswalk / Pedestrian waiting' },
+      { condition: 'permissive_B',  label: 'Green Light + No Crosswalk / Pedestrian waiting' },
+      { condition: 'restrictive_A', label: 'Red Light + Crosswalk / Pedestrian waiting' },
+      { condition: 'restrictive_B', label: 'Red Light + No Crosswalk / Pedestrian waiting' },
+    ];
+
+    // 測試用 3 次，正式實驗改成 20
+    const PHASE1_REPS = 3;
+
+    const phase1_blocks = [];
+    phase1_conditions.forEach(c => {
+      for (let i = 0; i < PHASE1_REPS; i++) {
+        phase1_blocks.push([
+          fixation,
+          make_trial(c.condition, 1, c.label),
+          iti
+        ]);
+      }
+    });
+    const phase1_randomized = jsPsych.randomization.shuffle(phase1_blocks).flat();
+
+    // ─── PHASE 2 CONDITIONS ──────────────────────────────────────
+    const phase2_conditions = [
+      { condition: 'congruent_proceed', label: 'Green Light + No Crosswalk / Pedestrian waiting' },
+      { condition: 'congruent_yield',   label: 'Red Light + Crosswalk / Pedestrian crossing' },
+      { condition: 'conflict_A',        label: 'Green Light + Crosswalk / Pedestrian waiting' },
+      { condition: 'conflict_B',        label: 'Red Light + No Crosswalk / Pedestrian crossing' },
+    ];
+
+    // 測試用 3 次，正式實驗改成 20
+    const PHASE2_REPS = 3;
+
+    const phase2_blocks = [];
+    phase2_conditions.forEach(c => {
+      for (let i = 0; i < PHASE2_REPS; i++) {
+        phase2_blocks.push([
+          fixation,
+          make_trial(c.condition, 2, c.label),
+          iti
+        ]);
+      }
+    });
+    const phase2_randomized = jsPsych.randomization.shuffle(phase2_blocks).flat();
+
+    // ─── INSTRUCTIONS ────────────────────────────────────────────
+    const instructions_p1 = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="max-width:600px; margin:0 auto; text-align:left;">
+          <h2>Phase 1: Scene Classification</h2>
+          <p>You will see a series of driving scenes.</p>
+          <p>For each scene, respond <strong>as quickly as possible</strong>:</p>
+          <ul>
+            <li>Press <strong>F</strong> if you would <strong>Yield</strong></li>
+            <li>Press <strong>J</strong> if you would <strong>Proceed</strong></li>
+          </ul>
+          <p>There are no right or wrong answers. <strong>Speed is most important.</strong></p>
+          <br>
+          <p style="text-align:center;">Press any key to begin.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
+    const instructions_p2 = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="max-width:600px; margin:0 auto; text-align:left;">
+          <h2>Phase 2: Judgment Task</h2>
+          <p>You will see a series of driving scenes again.</p>
+          <p>For each scene, judge whether you would:</p>
+          <ul>
+            <li>Press <strong>F</strong> = <strong>Yield</strong> to the pedestrian</li>
+            <li>Press <strong>J</strong> = <strong>Proceed</strong> through</li>
+          </ul>
+          <p>Both <strong>speed and accuracy</strong> are important.</p>
+          <br>
+          <p style="text-align:center;">Press any key to begin.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
+    const end_screen = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="text-align:center;">
+          <h2>Thank you!</h2>
+          <p>The experiment is now complete.</p>
+          <p>Press any key to see your data.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
+    // ─── RUN EXPERIMENT ──────────────────────────────────────────
+    jsPsych.run([
+      instructions_p1,
+      ...phase1_randomized,
+      instructions_p2,
+      ...phase2_randomized,
+      end_screen
+    ]);
+
+  </script>
+</html>
