@@ -12,10 +12,14 @@
 
     const jsPsych = initJsPsych({
       on_finish: function() {
-        const trials = jsPsych.data.get().filter({trial_type: 'html-keyboard-response'}).filterCustom(function(trial) {
+        const trials = jsPsych.data.get().filterCustom(function(trial) {
           return trial.condition !== undefined;
         });
-        trials.localSave('csv', 'experiment_data.csv');
+        const csv_data = trials.csv();
+        window.parent.postMessage({
+          type: "EXPERIMENT_DATA",
+          csv_data: csv_data
+        }, "*");
       }
     });
 
