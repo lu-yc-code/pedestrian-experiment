@@ -21,7 +21,7 @@
     // ─── 產生某個 phase + condition 的圖片路徑清單 ──────────────
     function makeImages(phase, condition) {
       return Array.from({ length: IMAGES_PER_CONDITION }, (_, i) =>
-        `images/p${phase}_${condition}_${String(i + 1).padStart(2, '0')}.jpg`
+        `images/p${phase}_${condition}_${String(i + 1).padStart(2, '0')}.png`
       );
     }
 
