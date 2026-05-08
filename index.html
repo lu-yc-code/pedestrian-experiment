@@ -100,7 +100,7 @@
     const phase1_randomized = jsPsych.randomization.shuffle(phase1_blocks).flat();
 
     // ─── PHASE 2 CONDITIONS ──────────────────────────────────────
-    const phase2_conditions = ['congruent_proceed', 'congruent_brake', 'conflict_A', 'conflict_B'];
+    const phase2_conditions = ['congruent_proceed', 'congruent_brake', 'conflict_proceed', 'conflict_brake'];
 
     const phase2_blocks = [];
     phase2_conditions.forEach(condition => {
