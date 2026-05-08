@@ -14,13 +14,24 @@
   <body></body>
   <script>
 
+    const TOTAL_IMAGES = 20;
+    const PHASE1_REPS = 12;
+    const PHASE2_REPS = 12;
+
+    // ─── 產生某個 condition 的圖片路徑清單 ──────────────────────
+    function makeImages(condition) {
+      return Array.from({ length: TOTAL_IMAGES }, (_, i) =>
+        `images/${condition}_${String(i + 1).padStart(2, '0')}.jpg`
+      );
+    }
+
     const jsPsych = initJsPsych({
       on_finish: function() {
         const all_data = jsPsych.data.get().filterCustom(function(trial) {
           return trial.condition !== undefined;
         }).values();
 
-        const headers = ['condition', 'phase', 'label', 'rt', 'response', 'trial_index', 'time_elapsed'];
+        const headers = ['condition', 'phase', 'image', 'rt', 'response', 'trial_index', 'time_elapsed'];
         const rows = all_data.map(trial =>
           headers.map(h => '"' + String(trial[h] || '').replace(/"/g, '""') + '"').join(',')
         );
@@ -50,24 +61,12 @@
     };
 
     // ─── HELPER: 產生一個 trial ──────────────────────────────────
-    function make_trial(condition, phase, label) {
+    function make_trial(condition, phase, img_src) {
       return {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `
           <div style="text-align:center;">
-            <div style="
-              width: 640px;
-              height: 360px;
-              background: #ccc;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              margin: 0 auto 20px auto;
-              font-size: 18px;
-              color: #555;
-            ">
-              [ ${label} ]
-            </div>
+            <img src="${img_src}" style="width:640px; height:360px; object-fit:cover; display:block; margin:0 auto 20px auto;">
             <p style="font-size:16px;">
               Press <strong>F</strong> = Brake &nbsp; &nbsp; &nbsp;
               Press <strong>J</strong> = Proceed
@@ -78,27 +77,22 @@
         data: {
           condition: condition,
           phase: phase,
-          label: label
+          image: img_src
         }
       };
     }
 
     // ─── PHASE 1 CONDITIONS ──────────────────────────────────────
     // 只有 congruent conditions（訊號一致，無衝突）
-    const phase1_conditions = [
-      { condition: 'congruent_proceed', label: 'Green Light / No Pedestrian in Crosswalk' },
-      { condition: 'congruent_brake',   label: 'Red Light / Pedestrian Crossing' },
-    ];
-
-    // 測試用 12 次，正式實驗改成 20
-    const PHASE1_REPS = 12;
+    const phase1_conditions = ['congruent_proceed', 'congruent_brake'];
 
     const phase1_blocks = [];
-    phase1_conditions.forEach(c => {
+    phase1_conditions.forEach(condition => {
+      const shuffled = jsPsych.randomization.shuffle(makeImages(condition));
       for (let i = 0; i < PHASE1_REPS; i++) {
         phase1_blocks.push([
           fixation,
-          make_trial(c.condition, 1, c.label),
+          make_trial(condition, 1, shuffled[i]),
           iti
         ]);
       }
@@ -106,23 +100,16 @@
     const phase1_randomized = jsPsych.randomization.shuffle(phase1_blocks).flat();
 
     // ─── PHASE 2 CONDITIONS ──────────────────────────────────────
-    // congruent conditions 與 Phase 1 共用圖片；conflict conditions 為衝突情境
-    const phase2_conditions = [
-      { condition: 'congruent_proceed', label: 'Green Light / No Pedestrian in Crosswalk' },
-      { condition: 'congruent_brake',   label: 'Red Light / Pedestrian Crossing' },
-      { condition: 'conflict_A',        label: 'Green Light / Pedestrian Crossing' },
-      { condition: 'conflict_B',        label: 'Red Light / No Pedestrian in Crosswalk' },
-    ];
-
-    // 測試用 3 次，正式實驗改成 15
-    const PHASE2_REPS = 12;
+    // congruent conditions 與 Phase 1 共用圖片庫；conflict conditions 為衝突情境
+    const phase2_conditions = ['congruent_proceed', 'congruent_brake', 'conflict_A', 'conflict_B'];
 
     const phase2_blocks = [];
-    phase2_conditions.forEach(c => {
+    phase2_conditions.forEach(condition => {
+      const shuffled = jsPsych.randomization.shuffle(makeImages(condition));
       for (let i = 0; i < PHASE2_REPS; i++) {
         phase2_blocks.push([
           fixation,
-          make_trial(c.condition, 2, c.label),
+          make_trial(condition, 2, shuffled[i]),
           iti
         ]);
       }
