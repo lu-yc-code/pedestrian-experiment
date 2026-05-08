@@ -14,13 +14,13 @@
   <body></body>
   <script>
 
-    const TOTAL_IMAGES = 20;
+    const IMAGES_PER_CONDITION = 20; // Phase 1: 2×20=40張, Phase 2: 4×20=80張, 合計120張
     const PHASE1_REPS = 12;
     const PHASE2_REPS = 12;
 
     // ─── 產生某個 phase + condition 的圖片路徑清單 ──────────────
     function makeImages(phase, condition) {
-      return Array.from({ length: TOTAL_IMAGES }, (_, i) =>
+      return Array.from({ length: IMAGES_PER_CONDITION }, (_, i) =>
         `images/p${phase}_${condition}_${String(i + 1).padStart(2, '0')}.jpg`
       );
     }
