@@ -69,7 +69,7 @@
               [ ${label} ]
             </div>
             <p style="font-size:16px;">
-              Press <strong>F</strong> = Yield &nbsp; &nbsp; &nbsp;
+              Press <strong>F</strong> = Brake &nbsp; &nbsp; &nbsp;
               Press <strong>J</strong> = Proceed
             </p>
           </div>
@@ -84,15 +84,14 @@
     }
 
     // ─── PHASE 1 CONDITIONS ──────────────────────────────────────
+    // 只有 congruent conditions（訊號一致，無衝突）
     const phase1_conditions = [
-      { condition: 'permissive_A',  label: 'Green Light + Crosswalk / Pedestrian waiting' },
-      { condition: 'permissive_B',  label: 'Green Light + No Crosswalk / Pedestrian waiting' },
-      { condition: 'restrictive_A', label: 'Red Light + Crosswalk / Pedestrian waiting' },
-      { condition: 'restrictive_B', label: 'Red Light + No Crosswalk / Pedestrian waiting' },
+      { condition: 'congruent_proceed', label: 'Green Light / No Pedestrian in Crosswalk' },
+      { condition: 'congruent_brake',   label: 'Red Light / Pedestrian Crossing' },
     ];
 
-    // 測試用 3 次，正式實驗改成 20
-    const PHASE1_REPS = 3;
+    // 測試用 12 次，正式實驗改成 20
+    const PHASE1_REPS = 12;
 
     const phase1_blocks = [];
     phase1_conditions.forEach(c => {
@@ -107,15 +106,16 @@
     const phase1_randomized = jsPsych.randomization.shuffle(phase1_blocks).flat();
 
     // ─── PHASE 2 CONDITIONS ──────────────────────────────────────
+    // congruent conditions 與 Phase 1 共用圖片；conflict conditions 為衝突情境
     const phase2_conditions = [
-      { condition: 'congruent_proceed', label: 'Green Light + No Crosswalk / Pedestrian waiting' },
-      { condition: 'congruent_yield',   label: 'Red Light + Crosswalk / Pedestrian crossing' },
-      { condition: 'conflict_A',        label: 'Green Light + Crosswalk / Pedestrian waiting' },
-      { condition: 'conflict_B',        label: 'Red Light + No Crosswalk / Pedestrian crossing' },
+      { condition: 'congruent_proceed', label: 'Green Light / No Pedestrian in Crosswalk' },
+      { condition: 'congruent_brake',   label: 'Red Light / Pedestrian Crossing' },
+      { condition: 'conflict_A',        label: 'Green Light / Pedestrian Crossing' },
+      { condition: 'conflict_B',        label: 'Red Light / No Pedestrian in Crosswalk' },
     ];
 
-    // 測試用 3 次，正式實驗改成 20
-    const PHASE2_REPS = 3;
+    // 測試用 3 次，正式實驗改成 15
+    const PHASE2_REPS = 12;
 
     const phase2_blocks = [];
     phase2_conditions.forEach(c => {
@@ -138,7 +138,7 @@
           <p>You will see a series of driving scenes.</p>
           <p>For each scene, respond <strong>as quickly as possible</strong>:</p>
           <ul>
-            <li>Press <strong>F</strong> if you would <strong>Yield</strong></li>
+            <li>Press <strong>F</strong> if you would <strong>Brake</strong></li>
             <li>Press <strong>J</strong> if you would <strong>Proceed</strong></li>
           </ul>
           <p>There are no right or wrong answers. <strong>Speed is most important.</strong></p>
@@ -157,7 +157,7 @@
           <p>You will see a series of driving scenes again.</p>
           <p>For each scene, judge whether you would:</p>
           <ul>
-            <li>Press <strong>F</strong> = <strong>Yield</strong> to the pedestrian</li>
+            <li>Press <strong>F</strong> = <strong>Brake</strong> for the pedestrian</li>
             <li>Press <strong>J</strong> = <strong>Proceed</strong> through</li>
           </ul>
           <p>Both <strong>speed and accuracy</strong> are important.</p>
@@ -174,10 +174,10 @@
         <div style="text-align:center;">
           <h2>Thank you!</h2>
           <p>The experiment is now complete.</p>
-          <p>Press any key to end the experiment.</p>
         </div>
       `,
-      choices: "ALL_KEYS"
+      choices: "NO_KEYS",
+      trial_duration: 2000
     };
 
     // ─── RUN EXPERIMENT ──────────────────────────────────────────
