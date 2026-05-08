@@ -18,10 +18,10 @@
     const PHASE1_REPS = 12;
     const PHASE2_REPS = 12;
 
-    // ─── 產生某個 condition 的圖片路徑清單 ──────────────────────
-    function makeImages(condition) {
+    // ─── 產生某個 phase + condition 的圖片路徑清單 ──────────────
+    function makeImages(phase, condition) {
       return Array.from({ length: TOTAL_IMAGES }, (_, i) =>
-        `images/${condition}_${String(i + 1).padStart(2, '0')}.jpg`
+        `images/p${phase}_${condition}_${String(i + 1).padStart(2, '0')}.jpg`
       );
     }
 
@@ -88,7 +88,7 @@
 
     const phase1_blocks = [];
     phase1_conditions.forEach(condition => {
-      const shuffled = jsPsych.randomization.shuffle(makeImages(condition));
+      const shuffled = jsPsych.randomization.shuffle(makeImages(1, condition));
       for (let i = 0; i < PHASE1_REPS; i++) {
         phase1_blocks.push([
           fixation,
@@ -100,12 +100,11 @@
     const phase1_randomized = jsPsych.randomization.shuffle(phase1_blocks).flat();
 
     // ─── PHASE 2 CONDITIONS ──────────────────────────────────────
-    // congruent conditions 與 Phase 1 共用圖片庫；conflict conditions 為衝突情境
     const phase2_conditions = ['congruent_proceed', 'congruent_brake', 'conflict_A', 'conflict_B'];
 
     const phase2_blocks = [];
     phase2_conditions.forEach(condition => {
-      const shuffled = jsPsych.randomization.shuffle(makeImages(condition));
+      const shuffled = jsPsych.randomization.shuffle(makeImages(2, condition));
       for (let i = 0; i < PHASE2_REPS; i++) {
         phase2_blocks.push([
           fixation,
