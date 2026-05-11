@@ -18,21 +18,20 @@
     const PHASE1_REPS = 15;
     const PHASE2_REPS = 15;
 
-    // ─── Image folder and filename mapping ──────────────────────
+    // ─── Image filename prefix mapping ──────────────────────────
     const image_map = {
-      '1_congruent_proceed': { folder: 'p1_proceed',           prefix: 'p1_proceed' },
-      '1_congruent_stop':    { folder: 'p1_brake',             prefix: 'p1_brake' },
-      '2_congruent_proceed': { folder: 'p2_congruent_proceed',  prefix: 'p2_congruent_proceed' },
-      '2_congruent_stop':    { folder: 'p2_congruent_brake',    prefix: 'p2_congruent_brake' },
-      '2_conflict_A':        { folder: 'p2_conflict_proceed',   prefix: 'p2_conflict_proceed' },
-      '2_conflict_B':        { folder: 'p2_conflict_brake',     prefix: 'p2_conflict_brake' },
+      '1_congruent_proceed': 'p1_congruent_proceed',
+      '1_congruent_stop':    'p1_congruent_brake',
+      '2_congruent_proceed': 'p2_congruent_proceed',
+      '2_congruent_stop':    'p2_congruent_brake',
+      '2_conflict_A':        'p2_conflict_proceed',
+      '2_conflict_B':        'p2_conflict_brake',
     };
 
     function makeImages(phase, condition) {
-      const key = phase + '_' + condition;
-      const map = image_map[key];
+      const prefix = image_map[phase + '_' + condition];
       return Array.from({ length: IMAGES_PER_CONDITION }, (_, i) =>
-        `images/${map.folder}/${map.prefix}_${String(i + 1).padStart(2, '0')}.png`
+        `images/${prefix}_${String(i + 1).padStart(2, '0')}.png`
       );
     }
 
@@ -295,7 +294,6 @@
             <li>Press <strong style="color:#537685;">F = Stop</strong> (come to a complete stop and wait for the pedestrian)</li>
             <li>Press <strong style="color:#ED8428;">J = Proceed</strong> (continue through the intersection, even if you slow down)</li>
           </ul>
-          <p><strong>Response speed is important</strong> — please respond as quickly as you can, but also try to be accurate.</p>
           <p style="text-align:center; color:#888; font-size:14px; margin-top:24px;">Press any key to begin.</p>
         </div>
       `,
