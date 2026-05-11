@@ -18,10 +18,21 @@
     const PHASE1_REPS = 15;
     const PHASE2_REPS = 15;
 
-    // ─── 產生某個 phase + condition 的圖片路徑清單 ──────────────
+    // ─── Image folder and filename mapping ──────────────────────
+    const image_map = {
+      '1_congruent_proceed': { folder: 'p1_proceed',           prefix: 'p1_proceed' },
+      '1_congruent_stop':    { folder: 'p1_brake',             prefix: 'p1_brake' },
+      '2_congruent_proceed': { folder: 'p2_congruent_proceed',  prefix: 'p2_congruent_proceed' },
+      '2_congruent_stop':    { folder: 'p2_congruent_brake',    prefix: 'p2_congruent_brake' },
+      '2_conflict_A':        { folder: 'p2_conflict_proceed',   prefix: 'p2_conflict_proceed' },
+      '2_conflict_B':        { folder: 'p2_conflict_brake',     prefix: 'p2_conflict_brake' },
+    };
+
     function makeImages(phase, condition) {
+      const key = phase + '_' + condition;
+      const map = image_map[key];
       return Array.from({ length: IMAGES_PER_CONDITION }, (_, i) =>
-        `images/p${phase}_${condition}_${String(i + 1).padStart(2, '0')}.png`
+        `images/${map.folder}/${map.prefix}_${String(i + 1).padStart(2, '0')}.png`
       );
     }
 
@@ -60,17 +71,23 @@
       trial_duration: 500
     };
 
-    // ─── HELPER: 產生一個 trial ──────────────────────────────────
+    // ─── Key reminder (colored) ──────────────────────────────────
+    const key_reminder = `
+      <p style="font-size:16px; margin-top:16px;">
+        Press <strong style="color:#537685;">F = Stop</strong>
+        &nbsp;&nbsp;&nbsp;
+        Press <strong style="color:#ED8428;">J = Proceed</strong>
+      </p>
+    `;
+
+    // ─── HELPER: 產生一個正式 trial ──────────────────────────────
     function make_trial(condition, phase, img_src) {
       return {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `
           <div style="text-align:center;">
-            <img src="${img_src}" style="max-width:720px; max-height:65vh; width:auto; height:auto; display:block; margin:0 auto 20px auto;">
-            <p style="font-size:16px;">
-              Press <strong>F</strong> = Brake &nbsp; &nbsp; &nbsp;
-              Press <strong>J</strong> = Proceed
-            </p>
+            <img src="${img_src}" style="max-width:720px; max-height:65vh; width:auto; height:auto; display:block; margin:0 auto 16px auto;">
+            ${key_reminder}
           </div>
         `,
         choices: ['f', 'j'],
@@ -82,9 +99,156 @@
       };
     }
 
+    // ─── HELPER: 產生一個練習 trial ──────────────────────────────
+    function make_practice_trial(img_src) {
+      return [
+        fixation,
+        {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: `
+            <div style="text-align:center;">
+              <img src="${img_src}" style="max-width:720px; max-height:65vh; width:auto; height:auto; display:block; margin:0 auto 16px auto;">
+              ${key_reminder}
+            </div>
+          `,
+          choices: ['f', 'j'],
+          data: { condition: 'practice', phase: 0, image: img_src }
+        },
+        {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: function() {
+            const last = jsPsych.data.get().last(1).values()[0];
+            const choice = last.response === 'f'
+              ? '<span style="color:#537685; font-weight:bold;">Stop</span>'
+              : '<span style="color:#ED8428; font-weight:bold;">Proceed</span>';
+            return `
+              <div style="text-align:center; max-width:500px; margin:60px auto;">
+                <p style="font-size:22px;">You pressed: ${choice}</p>
+                <p style="font-size:14px; color:#999;">Continuing in 2 seconds...</p>
+              </div>
+            `;
+          },
+          choices: "NO_KEYS",
+          trial_duration: 2000
+        },
+        iti
+      ];
+    }
+
+    // ─── EXPERIMENT INTRODUCTION ─────────────────────────────────
+
+    const intro_1 = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="max-width:660px; margin:0 auto; text-align:left; line-height:1.8;">
+          <h2 style="text-align:center;">Welcome</h2>
+          <p>In this experiment, you will view a series of driving scenes from a first-person driver's perspective.</p>
+          <p>For each scene, you will decide whether you would <strong>Stop</strong> or <strong>Proceed</strong>.</p>
+          <hr style="margin:24px 0;">
+          <h3>Key Definitions</h3>
+          <p>
+            <strong style="color:#537685;">Stop (F key):</strong><br>
+            You would come to a <em>complete stop</em> and wait for the pedestrian to pass.
+          </p>
+          <p>
+            <strong style="color:#ED8428;">Proceed (J key):</strong><br>
+            You would continue through the intersection, even if you slow down slightly.
+          </p>
+          <hr style="margin:24px 0;">
+          <p style="text-align:center; color:#888; font-size:14px;">Press any key to continue.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
+    const intro_2 = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="max-width:660px; margin:0 auto; text-align:center; line-height:1.8;">
+          <h2>Your Response Keys</h2>
+          <p style="text-align:left;">Place your left index finger on <strong>F</strong> and your right index finger on <strong>J</strong> before each trial.</p>
+          <div style="display:flex; justify-content:center; gap:80px; margin:30px 0;">
+            <div style="text-align:center;">
+              <div style="
+                width:90px; height:90px;
+                background:#537685; color:white;
+                font-size:40px; font-weight:bold;
+                display:flex; align-items:center; justify-content:center;
+                border-radius:10px; margin:0 auto 12px auto;
+              ">F</div>
+              <strong style="color:#537685;">Stop</strong><br>
+              <span style="font-size:13px; color:#888;">Complete stop</span>
+            </div>
+            <div style="text-align:center;">
+              <div style="
+                width:90px; height:90px;
+                background:#ED8428; color:white;
+                font-size:40px; font-weight:bold;
+                display:flex; align-items:center; justify-content:center;
+                border-radius:10px; margin:0 auto 12px auto;
+              ">J</div>
+              <strong style="color:#ED8428;">Proceed</strong><br>
+              <span style="font-size:13px; color:#888;">Continue through intersection</span>
+            </div>
+          </div>
+          <p style="color:#888; font-size:14px;">Press any key to continue.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
+    const intro_3 = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="max-width:660px; margin:0 auto; text-align:left; line-height:1.8;">
+          <h2 style="text-align:center;">Your Goal</h2>
+          <p>For each scene, please try to make the <strong>most correct decision as soon as possible</strong>.</p>
+          <p>Both <strong>accuracy</strong> and <strong>response speed</strong> are important throughout the experiment.</p>
+          <p>The experiment consists of two phases. You will receive instructions before each phase.</p>
+          <hr style="margin:24px 0;">
+          <p>You will first complete <strong>5 practice trials</strong> to get familiar with the keys.</p>
+          <p style="text-align:center; color:#888; font-size:14px;">Press any key to begin the practice.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
+    // ─── PRACTICE TRIALS ─────────────────────────────────────────
+    const practice_image_paths = [
+      'images/pratice/practice_01.png',
+      'images/pratice/practice_02.png',
+      'images/pratice/practice_03.png',
+      'images/pratice/practice_04.png',
+      'images/pratice/practice_05.png',
+    ];
+
+    const practice_trials = practice_image_paths.flatMap(path =>
+      make_practice_trial(path)
+    );
+
+    const practice_end = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <div style="max-width:600px; margin:0 auto; text-align:center; line-height:1.8;">
+          <h2>Practice Complete</h2>
+          <p>Great! You have finished the practice trials.</p>
+          <p>The main experiment will now begin.</p>
+          <p style="margin-top:20px;">
+            Remember:<br>
+            <strong style="color:#537685;">F = Stop</strong>
+            &nbsp;&nbsp;&nbsp;
+            <strong style="color:#ED8428;">J = Proceed</strong>
+          </p>
+          <p style="color:#888; font-size:14px; margin-top:24px;">Press any key to begin Phase 1.</p>
+        </div>
+      `,
+      choices: "ALL_KEYS"
+    };
+
     // ─── PHASE 1 CONDITIONS ──────────────────────────────────────
-    // 只有 congruent conditions（訊號一致，無衝突）
-    const phase1_conditions = ['congruent_proceed', 'congruent_brake'];
+    // congruent_proceed: Green Light + pedestrian intent unclear
+    // congruent_stop:    Red Light   + pedestrian intent clear
+    const phase1_conditions = ['congruent_proceed', 'congruent_stop'];
 
     const phase1_blocks = [];
     phase1_conditions.forEach(condition => {
@@ -100,7 +264,11 @@
     const phase1_randomized = jsPsych.randomization.shuffle(phase1_blocks).flat();
 
     // ─── PHASE 2 CONDITIONS ──────────────────────────────────────
-    const phase2_conditions = ['congruent_proceed', 'congruent_brake', 'conflict_proceed', 'conflict_brake'];
+    // congruent_proceed: Green Light + intent unclear  → Proceed expected
+    // congruent_stop:    Red Light   + intent clear    → Stop expected
+    // conflict_A:        Green Light + intent clear    → conflict
+    // conflict_B:        Red Light   + intent unclear  → conflict
+    const phase2_conditions = ['congruent_proceed', 'congruent_stop', 'conflict_A', 'conflict_B'];
 
     const phase2_blocks = [];
     phase2_conditions.forEach(condition => {
@@ -115,21 +283,20 @@
     });
     const phase2_randomized = jsPsych.randomization.shuffle(phase2_blocks).flat();
 
-    // ─── INSTRUCTIONS ────────────────────────────────────────────
+    // ─── PHASE INSTRUCTIONS ──────────────────────────────────────
     const instructions_p1 = {
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `
-        <div style="max-width:600px; margin:0 auto; text-align:left;">
+        <div style="max-width:660px; margin:0 auto; text-align:left; line-height:1.8;">
           <h2>Phase 1: Scene Classification</h2>
           <p>You will see a series of driving scenes.</p>
-          <p>For each scene, respond <strong>as quickly as possible</strong>:</p>
+          <p>For each scene, please try to make the <strong>most correct decision as soon as possible</strong>:</p>
           <ul>
-            <li>Press <strong>F</strong> if you would <strong>Brake</strong></li>
-            <li>Press <strong>J</strong> if you would <strong>Proceed</strong></li>
+            <li>Press <strong style="color:#537685;">F = Stop</strong> (come to a complete stop and wait for the pedestrian)</li>
+            <li>Press <strong style="color:#ED8428;">J = Proceed</strong> (continue through the intersection, even if you slow down)</li>
           </ul>
-          <p>There are no right or wrong answers. <strong>Speed is most important.</strong></p>
-          <br>
-          <p style="text-align:center;">Press any key to begin.</p>
+          <p><strong>Response speed is important</strong> — please respond as quickly as you can, but also try to be accurate.</p>
+          <p style="text-align:center; color:#888; font-size:14px; margin-top:24px;">Press any key to begin.</p>
         </div>
       `,
       choices: "ALL_KEYS"
@@ -138,17 +305,16 @@
     const instructions_p2 = {
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `
-        <div style="max-width:600px; margin:0 auto; text-align:left;">
+        <div style="max-width:660px; margin:0 auto; text-align:left; line-height:1.8;">
           <h2>Phase 2: Judgment Task</h2>
-          <p>You will see a series of driving scenes again.</p>
-          <p>For each scene, judge whether you would:</p>
+          <p>You will see another series of driving scenes.</p>
+          <p>For each scene, please try to make the <strong>most correct decision as soon as possible</strong>:</p>
           <ul>
-            <li>Press <strong>F</strong> = <strong>Brake</strong> for the pedestrian</li>
-            <li>Press <strong>J</strong> = <strong>Proceed</strong> through</li>
+            <li>Press <strong style="color:#537685;">F = Stop</strong> (come to a complete stop and wait for the pedestrian)</li>
+            <li>Press <strong style="color:#ED8428;">J = Proceed</strong> (continue through the intersection, even if you slow down)</li>
           </ul>
-          <p>Speed is important.</p>
-          <br>
-          <p style="text-align:center;">Press any key to begin.</p>
+          <p>Both <strong>response speed and accuracy</strong> are important.</p>
+          <p style="text-align:center; color:#888; font-size:14px; margin-top:24px;">Press any key to begin.</p>
         </div>
       `,
       choices: "ALL_KEYS"
@@ -168,6 +334,11 @@
 
     // ─── RUN EXPERIMENT ──────────────────────────────────────────
     jsPsych.run([
+      intro_1,
+      intro_2,
+      intro_3,
+      ...practice_trials,
+      practice_end,
       instructions_p1,
       ...phase1_randomized,
       instructions_p2,
